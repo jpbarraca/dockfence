@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card" id="topo-card">
+  <h1>Topology</h1>
+  <p class="muted small"><span id="topo-note"></span></p>
+  <svg id="topo" width="100%" viewBox="0 0 990 312" role="img" aria-label="network topology"></svg>
+</div>
+<div class="card">
+  <h1>Containers</h1>
+  <table id="containers">
+    <thead>
+      <tr><th>container</th><th>policy</th><th>fw</th><th>networks / IPs</th><th>ports</th><th>blocked&nbsp;24h</th><th>rules</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+{% endblock %}
+{% block scripts %}<script>initContainersPage();</script>{% endblock %}

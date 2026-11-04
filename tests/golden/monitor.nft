@@ -1,0 +1,49 @@
+#!/usr/sbin/nft -f
+# dockfence generated ruleset — DO NOT EDIT BY HAND.
+# Rendered by dockfence; applied as one atomic transaction.
+table inet dockfence {
+  chain dfw_fwd {
+    type filter hook forward priority filter + 10; policy accept;
+    ct state established,related counter accept
+    ip saddr 172.18.0.6 jump c_111122223333_out comment "out web"
+    ip daddr 172.18.0.6 jump c_111122223333_in comment "in web"
+    ip saddr 172.18.0.5 jump c_abcdef123456_out comment "out web"
+    ip daddr 172.18.0.5 jump c_abcdef123456_in comment "in web"
+    ip6 saddr fd12:3456:7890:1::5 jump c_abcdef123456_out comment "out6 web"
+    ip6 daddr fd12:3456:7890:1::5 jump c_abcdef123456_in comment "in6 web"
+  }
+  chain dfw_inp {
+    type filter hook input priority filter + 10; policy accept;
+    ip saddr 172.18.0.6 jump c_111122223333_out comment "host-access web"
+    ip saddr 172.18.0.5 jump c_abcdef123456_out comment "host-access web"
+    ip6 saddr fd12:3456:7890:1::5 jump c_abcdef123456_out comment "host-access6 web"
+  }
+  chain c_111122223333_out {
+    # web: out (db)
+    ip daddr 203.0.113.4/32 tcp dport 443 counter accept comment "r#7"
+    udp dport 53 counter accept comment "r#3"
+    limit rate 10/second burst 20 packets log group 5 prefix "DFW;c=111122223333;d=web;dir=out;" counter
+    counter accept
+  }
+
+  chain c_111122223333_in {
+    # web: in (db)
+    ip saddr 10.0.0.0/8 tcp dport 8080 counter accept comment "r#2"
+    limit rate 10/second burst 20 packets log group 5 prefix "DFW;c=111122223333;d=web;dir=in;" counter
+    counter accept
+  }
+  chain c_abcdef123456_out {
+    # web: out (web)
+    ip daddr 203.0.113.4/32 tcp dport 443 counter accept comment "r#7"
+    udp dport 53 counter accept comment "r#3"
+    limit rate 10/second burst 20 packets log group 5 prefix "DFW;c=abcdef123456;d=web;dir=out;" counter
+    counter accept
+  }
+
+  chain c_abcdef123456_in {
+    # web: in (web)
+    ip saddr 10.0.0.0/8 tcp dport 8080 counter accept comment "r#2"
+    limit rate 10/second burst 20 packets log group 5 prefix "DFW;c=abcdef123456;d=web;dir=in;" counter
+    counter accept
+  }
+}

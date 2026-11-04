@@ -1,0 +1,96 @@
+:root { --bg:#0e1116; --card:#161b22; --line:#2b3440; --fg:#dbe2ea; --mut:#8a97a8; --acc:#e35205; --ok:#3fb27f; --warn:#e0a83c; --err:#e05252; }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.45 system-ui, sans-serif; }
+nav { display:flex; gap:1rem; align-items:center; padding:.6rem 1.2rem; background:var(--card); border-bottom:1px solid var(--line); }
+nav a { color:var(--fg); text-decoration:none; }
+nav .brand { font-weight:700; color:var(--acc); margin-right:.5rem; }
+.mode { margin-left:auto; padding:.15rem .6rem; border:1px solid var(--line); border-radius:999px; font-size:12px; text-transform:uppercase; }
+.mode-enforcing { color:var(--ok); } .mode-monitor { color:var(--warn); } .mode-disabled { color:var(--mut); }
+main { padding:1.2rem; max-width:1200px; margin:0 auto; }
+footer { padding:1rem; color:var(--mut); text-align:center; font-size:12px; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:1rem 1.2rem; margin-bottom:1rem; }
+.narrow { max-width:420px; margin:3rem auto; }
+h1 { font-size:1.3rem; margin:.2rem 0 .8rem; } h2 { font-size:1.05rem; margin:1rem 0 .5rem; } h3 { font-size:.95rem; }
+table { width:100%; border-collapse:collapse; margin:.4rem 0; }
+th, td { text-align:left; padding:.35rem .5rem; border-bottom:1px solid var(--line); vertical-align:top; }
+th { color:var(--mut); font-weight:600; font-size:12px; text-transform:uppercase; }
+.muted { color:var(--mut); } .small { font-size:12px; }
+.err { color:var(--err); }
+.badge { display:inline-block; padding:.1rem .5rem; border-radius:999px; border:1px solid var(--line); background:#1d242e; font-size:12px; }
+.fw-active { color:var(--ok); } .fw-monitor { color:var(--warn); } .fw-error { color:var(--err); } .fw-untagged, .fw-inactive, .fw-disabled { color:var(--mut); }
+button, select, input { background:#1d242e; color:var(--fg); border:1px solid var(--line); border-radius:6px; padding:.3rem .6rem; font:inherit; }
+button { cursor:pointer; } button:hover { border-color:var(--acc); }
+button.link { border:none; background:none; color:#6ea8ff; padding:0; text-decoration:underline; }
+button.danger { color:var(--err); }
+form#add-rule { display:flex; gap:.4rem; margin:.5rem 0; flex-wrap:wrap; }
+form#add-rule input, form#add-rule select { flex:0 1 130px; }
+form#add-rule input[name=cidr], form#add-rule input[name=comment] { flex:1 1 220px; }
+.row { display:flex; gap:1rem; } .col { flex:1; } .wrap { flex-wrap:wrap; }
+ul { margin:.2rem 0; padding-left:1.2rem; }
+code { background:#1d242e; padding:.05rem .3rem; border-radius:4px; }
+
+/* toast: server-side validation errors must never fail silently */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 3.5rem;
+  transform: translateX(-50%);
+  background: var(--card, #16213e);
+  border: 1px solid #2f9e44;
+  color: #d3f9d8;
+  padding: .6rem 1rem;
+  border-radius: 8px;
+  z-index: 99;
+  max-width: 80vw;
+  font-size: .9rem;
+  box-shadow: 0 4px 18px rgba(0,0,0,.5);
+}
+.toast.error { border-color: #e03131; color: #ffc9c9; }
+
+/* header toggles (logging / dns capture) */
+nav .toggles { margin-left: auto; display: flex; gap: 0.4rem; }
+button.link.toggle { color: #666; }
+button.link.toggle.on { color: #2f9e44; font-weight: 600; }
+button.link.toggle:disabled { opacity: 0.5; }
+
+/* links: the browser-default blue/violet is unreadable on the dark background */
+a { color: #7fb0ff; }
+a:visited { color: #b39bff; }
+a:hover { color: #a9c9ff; text-decoration: underline; }
+nav a:hover { text-decoration: none; }
+
+/* allow-from-log dialog */
+dialog {
+  background: var(--card); color: var(--fg);
+  border: 1px solid var(--line); border-radius: 10px;
+  padding: 1rem 1.2rem; width: min(600px, calc(100vw - 2rem));
+}
+dialog::backdrop { background: rgba(0, 0, 0, .65); }
+dialog h3 { margin: 0 0 .4rem; }
+dialog form .row { margin-bottom: .6rem; }
+
+/* dns page: time columns must never wrap */
+#dns-recent td:first-child, #dns-names td:last-child { white-space: nowrap; }
+
+/* frontpage topology diagram */
+#topo { display: block; }
+#topo .tnode rect { fill: #1d242e; stroke: var(--line); }
+#topo .tnode text { fill: var(--fg); font-size: 13px; text-anchor: middle; }
+#topo .tnode .sub { fill: var(--mut); font-size: 10px; }
+#topo .tnode.fw-node rect { stroke: var(--acc); stroke-width: 2; }
+#topo .tnode.fws-active rect { stroke: var(--ok); }
+#topo .tnode.fws-monitor rect { stroke: var(--warn); }
+#topo .tnode.fws-error rect { stroke: var(--err); }
+#topo .tstruct { stroke: var(--line); stroke-width: 1.5; }
+#topo text.legend { fill: var(--mut); font-size: 11px; }
+#topo a { text-decoration: none; }
+/* node kinds: containers = rounded boxes w/ fw-status stroke · networks = blue dashed
+   pills (◇) · internet = hollow dashed pill (☁) · dockfence = orange-stroked box */
+#topo .tnode.net-node rect {
+  fill: #1b2b3d;
+  stroke: #567ea8;
+  stroke-dasharray: 4 3;
+}
+#topo .tnode.net-node text { fill: #b7cde2; }
+#topo .tnode.inet-node rect { fill: none; stroke: var(--mut); stroke-dasharray: 7 5; }
+#topo .tnode.inet-node text { fill: var(--mut); }

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h1>DNS answers</h1>
+  <p>
+    <input id="dns-q" placeholder="filter by name or ip"> 
+    <button id="dns-clear" class="danger">forget all</button>
+  </p>
+  <table id="dns-names">
+    <thead><tr><th>name</th><th>ip</th><th>resolver</th><th>hits</th><th>last seen</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2>Recent answers</h2>
+  <table id="dns-recent">
+    <thead><tr><th>time</th><th>name</th><th>ip</th><th>resolver</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+{% endblock %}
+{% block scripts %}<script>initDnsPage();</script>{% endblock %}

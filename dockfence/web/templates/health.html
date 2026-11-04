@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h1>Health</h1>
+  <table>
+    <tr><th>mode</th><td>{{ cfg.mode }}{% if cfg.ipv6 %} (ipv6 on){% endif %}</td></tr>
+    <tr><th>controller</th>
+        <td>applies: {{ health.controller.applies }} · failures: {{ health.controller.apply_failures }}
+            · tagged: {{ health.controller.tagged }}
+            {% if health.controller.last_error %}<span class="err">{{ health.controller.last_error }}</span>{% endif %}</td></tr>
+    <tr><th>docker</th><td>{{ health.docker.status }} {{ health.docker.get('version','') }} {{ health.docker.get('error','') }}</td></tr>
+    <tr><th>nflog</th>
+        <td>group {{ health.nflog.group }} · bound: {{ health.nflog.bound }} · received: {{ health.nflog.received }}
+            · stored: {{ health.nflog.stored }} · dropped: {{ health.nflog.dropped }}
+            {% if health.nflog.error %}<span class="err">{{ health.nflog.error }}</span>{% endif %}</td></tr>
+    <tr><th>logging</th>
+        <td>packet logs: {{ 'on' if health.logging.enabled else '<span class="err">off</span>' | safe }} ·
+            dns answers: {{ 'on' if health.logging.dns else '<span class="err">off</span>' | safe }}
+            (nflog group {{ health.logging.dns_group }}) · learned names: {{ health.logging.dns_names }}</td></tr>
+    <tr><th>retention</th><td>logs: {{ health.retention.days }}d / max {{ health.retention.max_rows }} rows · events: {{ health.retention.event_days }}d</td></tr>
+    <tr><th>db</th><td>{{ health.db.path }} — integrity {{ health.db.integrity }}</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h2>Recent events</h2>
+  <table>
+    <thead><tr><th>time</th><th>kind</th><th>message</th></tr></thead>
+    <tbody>
+    {% for e in events %}
+      <tr><td class="muted">{{ e.ts | strftime }}</td><td><code>{{ e.kind }}</code></td><td>{{ e.msg }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

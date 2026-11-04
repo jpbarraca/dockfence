@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>dockfence</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <nav>
+    <a class="brand" href="/">🔥 dockfence</a>
+    <a href="/">Containers</a>
+    <a href="/dns">DNS</a>
+    <a href="/health">Health</a>
+    <span class="mode mode-{{ mode }}">{{ mode }}</span>
+    <span class="toggles">
+      <button class="link toggle{{ ' on' if fw_logging }}" id="toggle-logging"
+              title="packet logs: record blocked/allowed attempts (default off)">log: {{ 'on' if fw_logging else 'off' }}</button>
+      <button class="link toggle{{ ' on' if fw_dns_log }}" id="toggle-dns"
+              title="dns answer capture: learn name ↔ ip mappings (default off)">dns: {{ 'on' if fw_dns_log else 'off' }}</button>
+    </span>
+  </nav>
+  <main>
+  {% block content %}{% endblock %}
+  </main>
+  <footer>dockfence · default-deny nftables for tagged containers · {{ mode }} mode{% if ipv6 %} · ipv6 on{% endif %}</footer>
+  <div id="toast" class="toast" hidden></div>
+  <script src="/static/app.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

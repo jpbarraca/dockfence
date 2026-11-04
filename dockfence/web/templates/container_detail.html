@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h1>{{ c.name }} <span class="badge">{{ policy or '—' }}</span></h1>
+  <p class="muted">{{ c.id[:19] }}… · state {{ c.state }}</p>
+
+  <div class="row">
+    <div class="col">
+      <h2>Networks</h2>
+      <table>
+        <thead><tr><th>network</th><th>iface</th><th>IPv4</th><th>IPv6</th><th>gateway</th></tr></thead>
+        <tbody>
+        {% for n in c.networks %}
+          <tr><td>{{ n.name }}</td><td><code>{{ n.iface or '—' }}</code></td><td>{{ n.v4 or '—' }}</td><td>{{ n.v6 or '—' }}</td><td>{{ n.gateway4 or n.gateway6 or '—' }}</td></tr>
+        {% else %}
+          <tr><td colspan="5" class="muted">no networks</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% if c.ports %}
+      <h2>Published ports</h2>
+      <ul>{% for p in c.ports %}<li><code>{{ p.host }}</code> → {{ p.container }}</li>{% endfor %}</ul>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="card" id="rules-card">
+  <h2>Rules <span class="muted small">(policy: {{ policy }})</span></h2>
+  <p class="muted small" id="dns-warn" hidden></p>
+  <table id="rules">
+    <thead><tr><th>#</th><th>dir</th><th>proto</th><th>dport</th><th>remote cidr / dns</th><th>action</th><th>enabled</th><th>comment</th><th title="live kernel counters — no logging involved">pkts / bytes</th><th></th></tr></thead>
+    <tbody></tbody>
+  </table>
+
+  <h3>Add rule</h3>
+  <form id="add-rule" class="row wrap">
+    <select name="direction">
+      <option value="out">out (egress)</option>
+      <option value="in">in (ingress)</option>
+    </select>
+    <select name="proto">
+      <option value="tcp">tcp</option>
+      <option value="udp">udp</option>
+      <option value="icmp">icmp</option>
+      <option value="any">any</option>
+    </select>
+    <input name="port" type="number" min="1" max="65535" placeholder="dport">
+    <input name="port_end" type="number" min="1" max="65535" placeholder="port end">
+    <input name="cidr" placeholder="remote cidr (e.g. 203.0.113.4/32, empty = any)">
+    <input name="dns" placeholder="dns name (e.g. example.com) — IPs learned from DNS capture">
+    <select name="action">
+      <option value="accept">accept</option>
+      <option value="drop">drop</option>
+    </select>
+    <input name="comment" placeholder="comment">
+    <button type="submit">Add</button>
+  </form>
+  <p class="muted small">Presets:
+    <span id="presets"></span>
+    ·
+    <button class="link preset" data-p='{"direction":"in","proto":"any","cidr":"","action":"accept","comment":"published ports in (incl. gateway)"}'>allow published ports in</button>
+  </p>
+</div>
+
+<div class="card">
+  <h2>Blocked connections</h2>
+  {% if not logging %}
+  <p class="muted small">⚠ Logging is off — blocked attempts are <b>not recorded</b>. Toggle <b>log</b> in the header to enable.{% if mode == 'monitor' %} Monitor mode is invisible while logging is off.{% endif %}</p>
+  {% endif %}
+  <p class="filters">
+    dir <select id="f-dir"><option value=""></option><option>in</option><option>out</option></select>
+    proto <select id="f-proto"><option value=""></option><option>tcp</option><option>udp</option><option>icmp</option></select>
+    port <input id="f-port" size="6">
+    <button id="f-apply">filter</button>
+    <label><input type="checkbox" id="f-live" checked> live tail</label>
+  </p>
+  <table id="logs">
+    <thead><tr><th>time</th><th>dir</th><th>src</th><th>dst</th><th>proto</th><th>sport</th><th>dport</th><th></th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2>Active sessions</h2>
+  <p>
+    <button id="flush-btn" title="delete this container's conntrack entries so new rules apply to established flows immediately">flush conntrack</button>
+  </p>
+  <table id="sessions">
+    <thead><tr><th>dir</th><th>proto</th><th>state</th><th>src</th><th>dst</th><th>ttl</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<dialog id="allow-dlg">
+  <form id="allow-form">
+    <h3>Allow connection</h3>
+    <p class="muted small" id="allow-desc"></p>
+    <div class="row wrap" style="gap: 1rem;">
+      <label style="display: inline-flex; align-items: center; gap: .3rem; margin: 0;">
+        <input type="radio" name="matchby" value="ip" checked> by IP (cidr)
+      </label>
+      <label id="allow-dns-opt" style="display: inline-flex; align-items: center; gap: .3rem; margin: 0;"
+             title="no DNS name observed for this IP">
+        <input type="radio" name="matchby" value="dns"> by DNS name
+      </label>
+    </div>
+    <div class="row wrap">
+      <select name="direction" title="direction">
+        <option value="out">out (egress)</option>
+        <option value="in">in (ingress)</option>
+      </select>
+      <select name="proto" title="protocol">
+        <option value="tcp">tcp</option>
+        <option value="udp">udp</option>
+        <option value="any">any</option>
+        <option value="icmp">icmp</option>
+      </select>
+      <input name="port" type="number" min="1" max="65535" placeholder="dport">
+      <input name="port_end" type="number" min="1" max="65535" placeholder="port end (optional)">
+      <input name="cidr" placeholder="remote cidr (e.g. 203.0.113.4/32, empty = any)">
+      <input name="dns" placeholder="dns name (e.g. example.com) — IPs learned from DNS capture">
+      <input name="comment" placeholder="comment">
+    </div>
+    <p class="row" style="justify-content: flex-end; gap: .5rem; margin: 0;">
+      <button type="button" id="allow-cancel">Cancel</button>
+      <button type="submit">Allow</button>
+    </p>
+  </form>
+</dialog>
+{% endblock %}
+{% block scripts %}<script>initContainerPage("{{ c.id }}");</script>{% endblock %}

@@ -1,0 +1,12 @@
+venv/
+data/
+docs/
+tests/
+scripts/
+.git/
+__pycache__/
+*.pyc
+.pytest_cache/
+compose.yaml
+PLAN.md
+README.md

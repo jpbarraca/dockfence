@@ -1,0 +1,31 @@
+# dockfence deployment — needs CAP_NET_ADMIN + host network to
+# program the HOST's nftables and consume nflog netlink messages.
+services:
+  dockfence:
+    build: .
+    container_name: dockfence
+    network_mode: host              # manage HOST netns tables + nflog
+    cap_add:
+      - NET_ADMIN                   # nftables + nflog netlink
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro   # we only watch/inspect
+      - ./data:/var/lib/dockfence                      # SQLite: rules, logs, state
+    environment:
+      FW_LABEL: dockfence
+      FW_MODE: enforcing            # enforcing | monitor | disabled
+      FW_LISTEN: "127.0.0.1:8420"
+      FW_FILTER_HOST: "true"
+      FW_LOG_GROUP: "5"
+      FW_RECONCILE: 30s
+      FW_LOG_LIMIT: 10/second
+      FW_RETENTION_DAYS: "30"       # age-based pruning (0 = off)
+      FW_RETENTION_MAX_ROWS: "500000"  # size-based pruning (0 = off)
+      FW_EVENT_RETENTION_DAYS: "7"
+      FW_IPV6: "false"              # v6 filtering uses the same inet table
+      FW_TOKEN: change-me           # auto-generated + printed if empty
+      # TLS for the WebUI/API (optional; default off — localhost + SSH tunnel).
+      # Mount cert+key into the container read-only, e.g.:
+      #   volumes: - ./certs:/certs:ro
+      # FW_TLS_CERT: /certs/dockfence.crt
+      # FW_TLS_KEY: /certs/dockfence.key
+    restart: unless-stopped
